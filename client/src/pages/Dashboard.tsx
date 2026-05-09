@@ -1,4 +1,5 @@
-import { trpc } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { fetchDashboard } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fmtCurrency, fmtCurrencyCompact } from "@/lib/format";
@@ -48,13 +49,16 @@ function KpiCard({
 }
 
 export default function Dashboard() {
-  const { data, isLoading, isError } = trpc.auto1.dashboard.useQuery();
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: fetchDashboard,
+  });
 
   if (isError) {
     return (
       <div className="container py-16 text-center">
         <div className="font-serif text-xl text-brand-navy">Daten konnten nicht geladen werden</div>
-        <p className="mt-2 text-sm text-muted-foreground">Bitte Seite neu laden oder API-Verbindung prüfen.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Bitte Seite neu laden oder Supabase-Verbindung prüfen.</p>
       </div>
     );
   }
@@ -196,16 +200,6 @@ export default function Dashboard() {
                   href={`/fahrzeuge/${encodeURIComponent(v.stock_nr)}`}
                   className="flex items-center gap-3 py-3 group"
                 >
-                  <div className="h-12 w-16 rounded bg-muted overflow-hidden flex-shrink-0">
-                    {v.cover_photo && (
-                      <img
-                        src={v.cover_photo}
-                        alt=""
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    )}
-                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-medium text-sm text-brand-navy group-hover:underline truncate">
                       {v.brand} {v.model}

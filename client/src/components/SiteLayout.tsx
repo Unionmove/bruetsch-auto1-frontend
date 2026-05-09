@@ -79,10 +79,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
             <span>AUTO1 Import-Agent</span>
           </div>
           <div className="text-xs">
-            Demo-Daten — DB &amp; Fotos austauschbar via{" "}
-            <code className="rounded bg-muted px-1 py-0.5">AUTO1_DB_PATH</code>
-            {" / "}
-            <code className="rounded bg-muted px-1 py-0.5">AUTO1_PHOTOS_DIR</code>
+            Daten via Supabase · Hosting auf Vercel
           </div>
         </div>
       </footer>

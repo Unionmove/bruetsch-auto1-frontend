@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { fetchBrands, fetchVehicleList } from "@/lib/supabase";
 import VehicleCard from "@/components/VehicleCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
@@ -56,20 +57,31 @@ export default function VehicleList() {
   const filters = useMemo(
     () => ({
       brand: brand === ALL_BRANDS ? undefined : brand,
-      priceMin: numOrUndef(priceMin),
-      priceMax: numOrUndef(priceMax),
-      kmMin: numOrUndef(kmMin),
-      kmMax: numOrUndef(kmMax),
-      yearMin: numOrUndef(yearMin),
-      yearMax: numOrUndef(yearMax),
-      search: search.trim() || undefined,
+      minPrice: numOrUndef(priceMin),
+      maxPrice: numOrUndef(priceMax),
+      minKm: numOrUndef(kmMin),
+      maxKm: numOrUndef(kmMax),
+      minYear: numOrUndef(yearMin),
+      maxYear: numOrUndef(yearMax),
       sort,
     }),
-    [brand, priceMin, priceMax, kmMin, kmMax, yearMin, yearMax, search, sort]
+    [brand, priceMin, priceMax, kmMin, kmMax, yearMin, yearMax, sort]
   );
 
-  const brandsQuery = trpc.auto1.brands.useQuery();
-  const listQuery = trpc.auto1.list.useQuery(filters);
+  const brandsQuery = useQuery({ queryKey: ["brands"], queryFn: fetchBrands });
+  const listQuery = useQuery({
+    queryKey: ["vehicles", filters, search],
+    queryFn: () => fetchVehicleList(filters),
+    select: (rows) => {
+      const q = search.trim().toLowerCase();
+      if (!q) return rows;
+      return rows.filter((r) =>
+        [r.brand, r.model, r.variant, r.stock_nr]
+          .filter(Boolean)
+          .some((s) => String(s).toLowerCase().includes(q))
+      );
+    },
+  });
 
   const reset = () => {
     setBrand(ALL_BRANDS);

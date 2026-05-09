@@ -1,5 +1,6 @@
 import { Link, useRoute } from "wouter";
-import { trpc } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { fetchVehicleDetail } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -64,10 +65,11 @@ export default function VehicleDetail() {
   const [, params] = useRoute<{ id: string }>("/fahrzeuge/:id");
   const stockNr = params?.id ? decodeURIComponent(params.id) : "";
 
-  const { data, isLoading, isError } = trpc.auto1.detail.useQuery(
-    { stockNr },
-    { enabled: !!stockNr }
-  );
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["vehicleDetail", stockNr],
+    queryFn: () => fetchVehicleDetail(stockNr),
+    enabled: !!stockNr,
+  });
 
   if (isLoading) {
     return (
@@ -172,7 +174,7 @@ export default function VehicleDetail() {
             <PhotoGallery
               photos={photos.map((p) => ({
                 id: p.id,
-                src: p.src,
+                src: p.url,
                 caption: p.caption,
                 type: p.type,
               }))}
@@ -265,10 +267,10 @@ export default function VehicleDetail() {
                         key={d.id}
                         className="rounded-md border border-brand-line overflow-hidden bg-card"
                       >
-                        {d.photo && (
+                        {d.photo_url && (
                           <div className="aspect-[16/10] bg-muted overflow-hidden">
                             <img
-                              src={d.photo}
+                              src={d.photo_url}
                               alt={`${d.type} – ${d.position}`}
                               className="h-full w-full object-cover"
                               loading="lazy"
@@ -283,7 +285,7 @@ export default function VehicleDetail() {
                             <span
                               className={cn(
                                 "text-[10px] uppercase tracking-widest rounded px-1.5 py-0.5",
-                                SEVERITY_STYLES[d.severity] ?? SEVERITY_STYLES.leicht
+                                SEVERITY_STYLES[d.severity ?? ""] ?? SEVERITY_STYLES.leicht
                               )}
                             >
                               {d.severity}
